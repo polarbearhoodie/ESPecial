@@ -1,0 +1,13 @@
+#include "dht20.h"
+
+extern "C" void app_main(void){
+    i2c_master_init();
+
+    for(int i = 0; i < 10; i ++){
+        DHT value = get_Temperature();
+        float faren = value.celcius*1.8 + 32;
+        std::chrono::milliseconds interval {3000};
+        std::this_thread::sleep_for(interval);
+    }
+
+}
