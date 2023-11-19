@@ -1,4 +1,5 @@
 #pragma once
+
 #include <driver/i2c.h>
 
 struct DHT{
@@ -6,8 +7,6 @@ struct DHT{
     float celcius = 0;
     bool valid = false;
 };
-
-void i2c_master_init();
 
 void trigger_DHT20(int addr);
 

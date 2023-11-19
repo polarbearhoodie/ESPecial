@@ -10,28 +10,6 @@
 #define NACK_VAL I2C_MASTER_NACK                /*!< I2C nack value */
 #define WAIT 1                                  /*!< I2C wait period */
 
-void i2c_master_init(){
-    //configure controller - ESP32-C6
-    i2c_port_t i2c_master_port = I2C_NUM_0;
-
-    //configure master
-    //fixed order required, i2c.h is C code and C++ doesn't like it.
-    i2c_config_t conf = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = 5,         
-        .scl_io_num = 4,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master = {.clk_speed = 100000},             // 100kHz
-        .clk_flags = 0,
-    };
-
-    i2c_param_config(i2c_master_port, &conf);
-
-    i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0);
-}
-
-
 void trigger_DHT20(int addr){
     //init handle, begin command
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
