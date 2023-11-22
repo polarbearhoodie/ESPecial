@@ -1,5 +1,6 @@
 #include <driver/i2c.h>
 #include <thread>
+#include <array>
 #include "dht20.h"
 
 #define WRITE_BIT I2C_MASTER_WRITE              /*!< I2C master write */
@@ -9,6 +10,9 @@
 #define ACK_VAL I2C_MASTER_ACK                  /*!< I2C ack value */
 #define NACK_VAL I2C_MASTER_NACK                /*!< I2C nack value */
 #define WAIT 1                                  /*!< I2C wait period */
+
+
+using namespace std;
 
 void trigger_DHT20(int addr){
     //init handle, begin command
@@ -27,7 +31,12 @@ void trigger_DHT20(int addr){
 }
 
 
-void read_DHT20(int addr, uint8_t* data_rd, size_t size){
+array<uint8_t, 7> read_DHT20(int addr){
+
+    const size_t size = 7;
+    array<uint8_t, size> data_rd = {0};
+    uint8_t* point =  &data_rd[0];
+
     //init handle, begin command
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
@@ -36,29 +45,29 @@ void read_DHT20(int addr, uint8_t* data_rd, size_t size){
     i2c_master_write_byte(cmd, (addr << 1) | READ_BIT, ACK_CHECK_EN);
 
     //read data
-    i2c_master_read(cmd, data_rd, size, ACK_VAL);
-    i2c_master_read_byte(cmd, data_rd+size-1, NACK_VAL);
+    i2c_master_read(cmd, point, size, ACK_VAL);
+    i2c_master_read_byte(cmd, point+size-1, NACK_VAL);
 
     //end and send command
     i2c_master_stop(cmd);
     i2c_master_cmd_begin(I2C_NUM_0, cmd, WAIT);
     i2c_cmd_link_delete(cmd);
+
+    return data_rd;
 }
 
 
-DHT get_Temperature(){
+DHT get_Sensor(int addr){
     
     // init sensor 
     trigger_DHT20(0x38);
 
     // wait for data collection, min 80ms
-    std::chrono::milliseconds interval{100};
+    std::chrono::milliseconds interval{200};
     std::this_thread::sleep_for(interval);
 
     // read data
-    size_t data_len = 7;
-    uint8_t data[data_len] = {0};
-    read_DHT20(0x38, data, data_len);
+    array<uint8_t, 7> data = read_DHT20(0x38);
 
     //aggregate the data 
     uint32_t humidity = 0;

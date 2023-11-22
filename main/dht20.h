@@ -1,6 +1,7 @@
 #pragma once
 
 #include <driver/i2c.h>
+#include <array>
 
 struct DHT{
     float r_humidity = 0;
@@ -10,6 +11,6 @@ struct DHT{
 
 void trigger_DHT20(int addr);
 
-void read_DHT20(int addr, uint8_t* data_rd, size_t size);
+std::array<uint8_t, 7> read_DHT20(int addr);
 
-DHT get_Temperature();
+DHT get_Sensor(int addr);
