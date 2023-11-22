@@ -1,4 +1,4 @@
-# esper
+# ESPecial
 This project is a collection of files, designed to make building with the ESP32-C6 a little easier.
 
 ### color.h
