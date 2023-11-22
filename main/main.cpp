@@ -1,13 +1,11 @@
 #include "dht20.h"
 #include <thread>
-#include <iostream>
+#include <sstream>
 #include <vector>
 #include <array>
-
-
-using namespace std;
 #include <string>
 #include <stdio.h>
+using namespace std;
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -21,16 +19,11 @@ using namespace std;
 #include "esp_lvgl_port.h"
 #include "esp_lcd_panel_vendor.h"
 
-
-
-
-
-
 #define I2C_HOST 0
 #define H_RES 128
 #define V_RES 64
-
-#include <sstream>
+#define SDA 2
+#define SCL 3
 
 using namespace std;
 
@@ -42,8 +35,8 @@ void i2c_master_init(){
     //fixed order required, i2c.h is C code and C++ doesn't like it.
     i2c_config_t conf = {
         .mode = I2C_MODE_MASTER,
-        .sda_io_num = 2,         
-        .scl_io_num = 3,
+        .sda_io_num = SDA,         
+        .scl_io_num = SDL,
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
         .master = {.clk_speed = 400000},             // 100kHz
@@ -149,9 +142,12 @@ extern "C" void app_main(void){
     vector<string> myUI(4, "................");
 
     for(;;){
+        
+        //get the sensor data from DHT20
         value = get_Sensor(0x38);
         faren = value.celcius*1.8 + 32;
-
+        
+        //sometimes the sensor bugs out and returns no data
         if(value.valid){
             lv_obj_clean(lv_scr_act());
 
@@ -164,6 +160,9 @@ extern "C" void app_main(void){
             lvgl_ui(disp, myUI, 4);
         }
 
-        this_thread::sleep_for(50ms);
+        //allow interupts, or else lgvl crashes
+        for(int i = 0; i < 17; i++){
+            this_thread::sleep_for(100ms);
+        }
     }
 }
