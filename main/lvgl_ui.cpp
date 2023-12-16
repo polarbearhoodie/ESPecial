@@ -8,7 +8,7 @@ LV_FONT_DECLARE(terminus16);
 using namespace std;
 
 //hack font
-string addOne(string str_in){
+string add_one(string str_in){
     int n = str_in.length();
     for(int i = 0; i < n; i++){
         str_in[i] = (char) (int(str_in[i]) + 1);
@@ -30,7 +30,7 @@ void lvgl_ui(lv_disp_t *disp, vector<string> const &mytext, int ui_len){
         lines.push_back(lv_label_create(scr));
         lv_obj_add_style(lines[i], &style, 0);
 
-        lv_label_set_text(lines[i], addOne(mytext[i]).c_str());
+        lv_label_set_text(lines[i], add_one(mytext[i]).c_str());
         
         lv_obj_set_width(lines[i], disp->driver->hor_res);
         lv_obj_align(lines[i], LV_ALIGN_TOP_LEFT, 0,  16*i);
