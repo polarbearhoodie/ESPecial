@@ -13,4 +13,4 @@ void trigger_DHT20(int addr);
 
 std::array<uint8_t, 7> read_DHT20(int addr);
 
-DHT get_Sensor(int addr);
+DHT get_sensor(int addr);
