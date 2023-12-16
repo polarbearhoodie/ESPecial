@@ -16,16 +16,16 @@ class rgb{
 };
 
 
-void setRGB(rgb item);
-void clearLED();
+void set_RGB(rgb item);
+void clear_led();
 
-int linearApprox(int a, int b, int step, int total);
-int sigmoidApprox(int a, int b, int step, int total);
+int linear_approx(int a, int b, int step, int total);
+int sigmoid_approx(int a, int b, int step, int total);
 
-rgb rgbStep(rgb A, rgb B, int step, int total, int (*func)(int, int, int, int));
+rgb rgb_step(rgb A, rgb B, int step, int total, int (*func)(int, int, int, int));
 
-void blinkSequence(std::vector<rgb> colorvec, std::chrono::microseconds msOn);
-void continuousSequence(std::vector<rgb> colorvec, int steps, std::chrono::milliseconds msStep);
+void blink_sequence(std::vector<rgb> colorvec, std::chrono::microseconds msOn);
+void continuous_sequence(std::vector<rgb> colorvec, int steps, std::chrono::milliseconds msStep);
 
 
 std::vector<rgb> rainbow();

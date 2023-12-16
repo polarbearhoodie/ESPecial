@@ -23,46 +23,46 @@ rgb::rgb(int r1, int g1, int b1){
     this->blue = b1;
 }
 
-void setRGB(rgb item){
+void set_RGB(rgb item){
     led_strip_set_pixel(led_strip, 0, item.red, item.green, item.blue);
     led_strip_refresh(led_strip);
 }
 
-void clearLED(){
+void clear_led(){
     led_strip_clear(led_strip);
 }
 
-int linearApprox(int a, int b, int step, int total){
+int linear_approx(int a, int b, int step, int total){
     return (a*(total-step) + b*step)/total;
 }
 
-int sigmoidApprox(int a, int b, int step, int total){
+int sigmoid_approx(int a, int b, int step, int total){
     float ratio = (step/total * 2) - 1;
     float multiplier = 1 / (1 + exp(ratio));
     //because c++ truncates, we add a 0.5 to have it round
     return int(a*multiplier + b*multiplier + 0.5);
 }
 
-rgb rgbStep(rgb A, rgb B, int step, int total, int (*func)(int, int, int, int)){
+rgb rgb_step(rgb A, rgb B, int step, int total, int (*func)(int, int, int, int)){
     int red_delta = func(A.red, B.red, step, total);
     int green_delta = func(A.green, B.green, step, total);
     int blue_delta = func(A.blue, B.blue, step, total);
     return rgb(red_delta, green_delta, blue_delta);   
 }
 
-void blinkSequence(vector<rgb> colorvec, chrono::microseconds msOn){
+void blink_sequence(vector<rgb> colorvec, chrono::microseconds msOn){
     for (rgb x : colorvec){
-        setRGB(x);
+        set_RGB(x);
         this_thread::sleep_for(msOn);
     }
 }
 
-void continuousSequence(vector<rgb> colorvec, int steps, chrono::milliseconds msStep){
+void continuous_sequence(vector<rgb> colorvec, int steps, chrono::milliseconds msStep){
     int vecsize = colorvec.size();
     for(int i = 0; i < vecsize; i ++){
         for(int j = 0; j < steps; j++){
-            rgb tmpColor = rgbStep(colorvec[i], colorvec[(i+1)%vecsize], j, steps, &linearApprox);
-            setRGB(tmpColor);
+            rgb tmpColor = rgb_step(colorvec[i], colorvec[(i+1)%vecsize], j, steps, &linear_approx);
+            set_RGB(tmpColor);
             this_thread::sleep_for(msStep);
         }
     }
@@ -76,15 +76,15 @@ vector<rgb> rainbow(){
     rgb blue = rgb(0, 0, 120);
 
     for(int i = 0; i < 5; i++){
-        rainbow.push_back(rgbStep(red, green, i, 4, &linearApprox));
+        rainbow.push_back(rgb_step(red, green, i, 4, &linear_approx));
     }
 
     for(int i = 0; i < 5; i++){
-        rainbow.push_back(rgbStep(green, blue, i, 4, &linearApprox));
+        rainbow.push_back(rgb_step(green, blue, i, 4, &linear_approx));
     }
 
     for(int i = 0; i < 5; i++){
-        rainbow.push_back(rgbStep(blue, red, i, 4, &linearApprox));
+        rainbow.push_back(rgb_step(blue, red, i, 4, &linear_approx));
     }
 
     rainbow.pop_back();
