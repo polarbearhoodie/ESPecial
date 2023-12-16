@@ -19,11 +19,13 @@ using namespace std;
 #include "esp_lvgl_port.h"
 #include "esp_lcd_panel_vendor.h"
 
+#include "esp_task_wdt.h"
+
 #define I2C_HOST 0
 #define H_RES 128
 #define V_RES 64
-#define SDA 2
-#define SCL 3
+#define SDA 12
+#define SCL 13
 
 using namespace std;
 
@@ -36,7 +38,7 @@ void i2c_master_init(){
     i2c_config_t conf = {
         .mode = I2C_MODE_MASTER,
         .sda_io_num = SDA,         
-        .scl_io_num = SDL,
+        .scl_io_num = SCL,
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
         .master = {.clk_speed = 400000},             // 100kHz
@@ -96,7 +98,7 @@ lv_disp_t* init_panel_lvgl(){
 
 extern void lvgl_ui(lv_disp_t *disp, vector<string> const &mytext, int ui_len);
 
-string padString(string snip){
+string pad_string(string snip){
     stringstream ss;
     ss.precision(2);
     ss << snip;
@@ -107,7 +109,7 @@ string padString(string snip){
     return ss.str();
 }
 
-string formatTemp(float temperature){
+string format_temp(float temperature){
     stringstream ss;
     ss.precision(4);
     ss << "Temp:";
@@ -115,7 +117,7 @@ string formatTemp(float temperature){
     return ss.str(); 
 }
 
-string formatRH(float r_humidity){
+string format_rh(float r_humidity){
     stringstream ss;
     ss.precision(4);
     ss << "RH:";
@@ -123,7 +125,7 @@ string formatRH(float r_humidity){
     return ss.str();
 }
 
-string formatCounter(uint count){
+string format_counter(uint count){
     stringstream ss;
     ss << "Cycles:";
     ss << count;
@@ -141,10 +143,19 @@ extern "C" void app_main(void){
     uint counter = 0;
     vector<string> myUI(4, "................");
 
+    //watchdog config
+    const esp_task_wdt_config_t wdtConfig = {
+        .timeout_ms = 6000,
+        .trigger_panic = true
+    };
+    //i2c init watchdog, but does not trigger a panic
+    esp_task_wdt_reconfigure(&wdtConfig);
+    esp_task_wdt_add(NULL);
+
+    //begin system loop
     for(;;){
-        
         //get the sensor data from DHT20
-        value = get_Sensor(0x38);
+        value = get_sensor(0x38);
         faren = value.celcius*1.8 + 32;
         
         //sometimes the sensor bugs out and returns no data
@@ -153,16 +164,19 @@ extern "C" void app_main(void){
 
             counter += 1;
 
-            myUI[0] = padString(formatTemp(faren));
-            myUI[1] = padString(formatRH(value.r_humidity));
-            myUI[2] = padString(formatCounter(counter));
+            myUI[0] = pad_string(format_temp(faren));
+            myUI[1] = pad_string(format_rh(value.r_humidity));
+            myUI[2] = pad_string(format_counter(counter));
             
             lvgl_ui(disp, myUI, 4);
         }
 
         //allow interupts, or else lgvl crashes
-        for(int i = 0; i < 17; i++){
+        for(int i = 0; i < 8; i++){
             this_thread::sleep_for(100ms);
         }
+
+        //feed the watchdog
+        esp_task_wdt_reset();
     }
 }
