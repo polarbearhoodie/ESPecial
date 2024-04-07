@@ -11,7 +11,6 @@
 #define NACK_VAL I2C_MASTER_NACK                /*!< I2C nack value */
 #define WAIT 1                                  /*!< I2C wait period */
 
-
 using namespace std;
 
 void trigger_DHT20(int addr){
@@ -83,13 +82,13 @@ DHT get_sensor(int addr){
     //calculate the temperature
 
     DHT value;
-    value.r_humidity = float(humidity)/1048575 * 100;
+    value.relative_humidity = float(humidity)/1048575 * 100;
     value.celcius = float(temperature)/1048575 * 200 - 50;
 
     //check if the sensor was late
     if((data[0] & 0x18) == 0x18){
         //TODO***
-        //CRC check
+        //Implement CRC check using parity bits in DHT20 specification
         value.valid = true;
     }
 
