@@ -16,7 +16,7 @@ string add_one(string str_in){
     return str_in;
 }
 
-void lvgl_ui(lv_disp_t *disp, vector<string> const &mytext, int ui_len){
+void lvgl_ui(lv_disp_t *disp, vector<string> const &mytext){
     lv_obj_t *scr = lv_disp_get_scr_act(disp);
 
     //init style (font)
@@ -25,7 +25,7 @@ void lvgl_ui(lv_disp_t *disp, vector<string> const &mytext, int ui_len){
     lv_style_set_text_font(&style, &terminus16);
 
     vector<lv_obj_t*> lines;
-    for (int i = 0; i < ui_len; i++){
+    for (int i = 0; i < 4; i++){
         
         lines.push_back(lv_label_create(scr));
         lv_obj_add_style(lines[i], &style, 0);
@@ -34,5 +34,7 @@ void lvgl_ui(lv_disp_t *disp, vector<string> const &mytext, int ui_len){
         
         lv_obj_set_width(lines[i], disp->driver->hor_res);
         lv_obj_align(lines[i], LV_ALIGN_TOP_LEFT, 0,  16*i);
+        //i2c bus overload, causes sensor failure 
+        //lv_label_set_long_mode(lines[i], LV_LABEL_LONG_SCROLL_CIRCULAR);
     }
 }
