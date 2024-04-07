@@ -48,7 +48,8 @@ void i2c_master_init(){
     i2c_param_config(i2c_master_port, &conf);
 
     i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0);
-}
+}    //i2c has  watchdog, but does not trigger a panic
+
 
 lv_disp_t* init_panel_lvgl(){
     //Panel IO
@@ -96,11 +97,10 @@ lv_disp_t* init_panel_lvgl(){
     return lvgl_port_add_disp(&disp_cfg);
 }
 
-extern void lvgl_ui(lv_disp_t *disp, vector<string> const &mytext, int ui_len);
+extern void lvgl_ui(lv_disp_t *disp, vector<string> const &mytext);
 
 string pad_string(string snip){
     stringstream ss;
-    ss.precision(2);
     ss << snip;
     int n = snip.length();
     for(int i = n; i < 16; i++){
@@ -111,17 +111,15 @@ string pad_string(string snip){
 
 string format_temp(float temperature){
     stringstream ss;
-    ss.precision(4);
-    ss << "Temp:";
-    ss << temperature << "F";
+    ss.precision(3);
+    ss << temperature << "°F";
     return ss.str(); 
 }
 
 string format_rh(float r_humidity){
     stringstream ss;
-    ss.precision(4);
-    ss << "RH:";
-    ss << r_humidity << "%";
+    ss.precision(3);
+    ss << r_humidity << "%RH";
     return ss.str();
 }
 
@@ -132,6 +130,7 @@ string format_counter(uint count){
     return ss.str();
 }
 
+
 extern "C" void app_main(void){
     i2c_master_init();
 
@@ -141,20 +140,23 @@ extern "C" void app_main(void){
     DHT value;
     float faren;
     uint counter = 0;
+    //uint elapsed_time = 0;
     vector<string> myUI(4, "................");
 
-    //watchdog config
+    //configure watchdog
     const esp_task_wdt_config_t wdtConfig = {
         .timeout_ms = 6000,
         .trigger_panic = true
     };
-    //i2c init watchdog, but does not trigger a panic
+
+    //i2c has watchdog, but does not trigger a panic
     esp_task_wdt_reconfigure(&wdtConfig);
     esp_task_wdt_add(NULL);
 
     //begin system loop
     for(;;){
-        //get the sensor data from DHT20
+        //sensor takes 200ms minimum to collect data form DHT20
+        //the sensor will not return data if the i2c bus is busy during this time.
         value = get_sensor(0x38);
         faren = value.celcius*1.8 + 32;
         
@@ -163,16 +165,16 @@ extern "C" void app_main(void){
             lv_obj_clean(lv_scr_act());
 
             counter += 1;
-
-            myUI[0] = pad_string(format_temp(faren));
-            myUI[1] = pad_string(format_rh(value.r_humidity));
-            myUI[2] = pad_string(format_counter(counter));
-            
-            lvgl_ui(disp, myUI, 4);
+            myUI[0] = pad_string("Sat 12:21PM");
+            myUI[1] = pad_string("Sept 01, 2024");
+            myUI[2] = pad_string(format_temp(faren) + " " + format_rh(value.relative_humidity));
+            myUI[3] = pad_string(format_counter(counter));
+ 
+            lvgl_ui(disp, myUI);
         }
 
-        //allow interupts, or else lgvl crashes
-        for(int i = 0; i < 8; i++){
+        //allow interupts
+        for(int i = 0; i < 16; i++){
             this_thread::sleep_for(100ms);
         }
 
